@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'techboost-03-api
+
+  Sample SAM Template for techboost-03-api
+
+  '
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+Parameters:
+  Host:
+    Type: String
+  User:
+    Type: String
+  Pass:
+    Type: String
+  DbName:
+    Type: String
+Resources:
+  InfectedPeople:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: InfectedPeople
+      Handler: infected-people
+      Runtime: go1.x
+      Architectures:
+      - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /infected-people
+            Method: GET
+      Environment:
+        Variables:
+          PARAM1: VALUE
+          HOST:
+            Ref: Host
+          DBUSER:
+            Ref: User
+          PASS:
+            Ref: Pass
+          DB_NAME:
+            Ref: DbName
+      Role: arn:aws:iam::880843126767:role/techboost-lambda
+    Metadata:
+      SamResourceId: InfectedPeople
+  DataUpdate:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: DataUpdate
+      Handler: data-update
+      Runtime: go1.x
+      Architectures:
+      - x86_64
+      Events:
+        DataCheck:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *)
+      Environment:
+        Variables:
+          PARAM1: VALUE
+          HOST:
+            Ref: Host
+          DBUSER:
+            Ref: User
+          PASS:
+            Ref: Pass
+          DB_NAME:
+            Ref: DbName
+      Role: arn:aws:iam::880843126767:role/techboost-lambda
+    Metadata:
+      SamResourceId: DataUpdate
+Outputs:
+  HelloWorldAPI:
+    Description: API Gateway endpoint URL for Prod environment for First Function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  InfectedPeople:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - InfectedPeople
+      - Arn
